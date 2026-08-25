@@ -216,10 +216,11 @@ $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ 
 | 3행2열 | 너겟 성장 곡선 |
 | 3행3열 | 미융착 확률 피팅 곡선 |
 
-**패널 간 관계:** 2행1열의 위험/경계/안전 배경은 3행3열 미융착 임계값 $Q_{min}$을 그 샘플의
+**패널 간 관계:** 2행1열의 위험/경계/안전 배경은 3행3열의 미융착 임계값 $Q_{min}$을 그 샘플의
 전류·통전시간을 고정한 채 $\Delta T$ 축으로 역산한 것이고, 2행2열의 배경은 팽출 임계값(전극각도
-7.5도)을 접촉각 편차 축으로 역산한 것이다. 즉 네 패널(2행1·2열, 3행3열, 1행3열)이 하나의 판정
-기준을 서로 다른 좌표축에서 바라본다.
+7.5도)을 접촉각 편차 축으로 역산한 것이다. 두 임계값은 서로 다른 물리량(열입력 대 접촉각)에
+근거하며, 1행3열은 이 두 기준을 하나의 실측 위상도 위에 배경(미융착 구간)과 제목 표시(팽출
+판정)로 함께 나타내 세 패널을 한 화면에서 대조할 수 있게 한다.
 
 **주요 결과(TEST 약 50건):**
 
@@ -260,3 +261,306 @@ Explode(굴곡) 과제에서 adaptive는 baseline이 놓치던 위험 표본(rec
 셀별 산출물이 `stepN_설명.csv` 규칙으로 저장되며, 대시보드 애니메이션은 `figures/` 하위에
 GIF로 저장된다. 모두 노트북 재실행으로 동일하게 재생성되므로 저장소에는 포함하지 않았다
 (`.gitignore` 참고). 본문에 첨부한 세 개의 GIF는 `assets/dashboards/`에 별도로 보관한다.
+
+---
+---
+
+# Welding Process Digital Twin: A Collection of Closed-Loop Control Simulation Dashboards
+
+## Overview
+
+This repository contains three notebooks that fit physical models to empirical resistance spot
+welding (RSW) data, superimpose stochastic disturbances (temperature deviation, contact-angle
+deviation, etc.), and visualize the real-time response of a closed-loop controller through a
+3x3 digital-twin dashboard, together with the physical-model-fitting notebook that underlies
+all three.
+
+| Notebook | Nature of Data | What It Validates |
+|---|---|---|
+| `1_rsw_optimization.ipynb` | 493 empirical welds | Physical model fitting (prerequisite notebook; the common foundation for the three notebooks below) |
+| **[B]** `2_sim_weld.ipynb` | Empirical data combined with synthetic disturbance | Real-time response of multi-variable (current, weld time, pressure) closed-loop control |
+| **[C]** `3_rsw_adaptive_finetuning.ipynb` | Empirical data combined with synthetic disturbance | Performance of sensor-based, calibrated adaptive judgment relative to a fixed baseline |
+| **[A]** `4_sim.ipynb` | Fully synthetic | Proof of concept for single-variable (torch speed) closed-loop control |
+
+The leading digit (1-4) in each filename denotes the **recommended execution order**:
+`1_rsw_optimization.ipynb` must be run first, whereas `4_sim.ipynb` has no external
+dependencies and may be run at any point. The **[A]**, **[B]**, **[C]** tags, by contrast, are
+content labels used throughout the remainder of this document to refer to each notebook, and
+carry no implication about execution order.
+
+**[A]**, titled `Ultimate 3x3 Digital Twin: Adaptive Welding Process Simulation`, implements a
+single-variable controller that quantitatively exposes the structural limits of a single-axis
+compensation scheme; it functions as a preliminary study. **[B]**, titled `Empirical Adaptive
+Welding Simulation: Real-time Optimal Condition Dashboard`, inherits this limitation and
+extends the controller to a multi-variable architecture, combining 493 empirical RSW welds
+with real infrared (IR) thermal images to deliver results that go beyond a mere proof of
+concept. **[C]** adopts the perspective not of a controller but of a classifier -- how
+accurately can defects be predicted under a given condition -- and quantifies the benefit of
+adaptive judgment by comparing a baseline that applies a fixed standard model against an
+adaptive model that senses and calibrates for deviation. In what follows, the three notebooks
+are referred to as **[A]**, **[B]**, and **[C]**, respectively.
+
+---
+
+## Theoretical Background
+
+### Defect Mechanisms and Physical Models in Resistance Spot Welding (RSW)
+
+Resistance spot welding joins two metal sheets by passing current between two electrodes and
+locally melting the material through Joule heating at the contact interface. Insufficient heat
+input leaves the base metal incompletely fused, a defect termed **lack of fusion (Bad)**;
+excessive or unevenly distributed heat input -- often caused by electrode misalignment --
+expels molten metal, a defect termed **expulsion (Explode)**.
+
+$$Q = I^2 R t$$
+
+| Symbol | Meaning |
+|---|---|
+| $Q$ | Heat input (a cumulative indicator of heat generated per unit time) |
+| $I$ | Welding current |
+| $R$ | Contact resistance (not measured in the original dataset -- approximated as 1 or as a function of temperature) |
+| $t$ | Weld (current-on) time |
+
+`1_rsw_optimization.ipynb` fits the following four physical models to the 493 empirical welds,
+and **[B]** and **[C]** both reuse these fitted results directly.
+
+| Model | Equation | Meaning of Terms |
+|---|---|---|
+| Lack-of-fusion probability | $p_{bad}(Q)=\dfrac{1}{1+e^{k(Q-Q_{min})}}$ | $Q_{min}$: heat input at which the probability equals 0.5; $k$: steepness of the transition |
+| Expulsion probability | $p_{exp}(\theta,P)=\dfrac{1}{1+e^{-z}},\ z=b_0+b_\theta\theta+b_1P+b_2P^2$ | $\theta$: electrode angle; $P$: electrode pressure; $b_2$: quadratic coefficient capturing the U-shaped relationship |
+| Nugget growth | $D(Q)=D_0+(D_{max}-D_0)(1-e^{-Q/\tau})$ | $D_0$: initial diameter; $D_{max}$: saturation diameter; $\tau$: growth time constant |
+| Tensile strength | $F=aD+b$ | $a, b$: coefficients of the linear regression of tensile strength on nugget diameter |
+
+The fact that lack of fusion is governed solely by $Q$, whereas expulsion is governed jointly
+by $\theta$ and $P$, is the shared rationale behind the separation of control axes in **[B]**
+and the independent evaluation of the two tasks in **[C]**. The nugget-growth and
+tensile-strength models form a causal chain $Q \to D \to F$, which every "operating point on
+the fitted curve" panel across the three notebooks visualizes.
+
+### Heat Input and Deposition Rate in GMAW (specific to [A])
+
+**[A]** models not resistance spot welding but gas metal arc welding (GMAW), which follows a
+distinct physics in which heat input is inversely proportional to torch travel speed.
+
+$$V=V_0+E\,l_a,\qquad Q=\eta\frac{VI}{v},\qquad WFS=MR=\alpha I+\beta L_e I^2$$
+
+| Symbol | Meaning |
+|---|---|
+| $V, V_0, E, l_a$ | Arc voltage, minimum voltage drop, electric field strength, arc-length deviation |
+| $\eta, v$ | Thermal efficiency (approximately 0.8), torch travel speed (the sole manipulated variable) |
+| $WFS, MR$ | Wire feed speed, melting rate (held in dynamic equilibrium) |
+| $\alpha I,\ \beta L_e I^2$ | Arc radiative-heating component, Joule-heating component from wire resistance |
+
+### Shared Dashboard Convention: Tolerance-Based Normalization Index
+
+The bar-chart panels in **[A]** and **[B]** compare variables of heterogeneous units on a
+single axis using the following index.
+
+$$I_{norm}=100+10\left(\frac{X-X_0}{\Delta X_{safe}}\right)\ [\%]$$
+
+Here $X$ is the real-time measured value, $X_0$ is the standard (target) value, and $\Delta
+X_{safe}$ is the variable-specific tolerance. A value of 100% corresponds to standard
+condition; the background is colored green (safe) for 90-110%, yellow (caution) for 75-125%,
+and red (risk) outside that range.
+
+---
+
+## Prerequisite Notebook: `1_rsw_optimization.ipynb`
+
+This prerequisite notebook fits the four physical models above to 493 empirical resistance
+spot welds (current, weld time, pressure, electrode angle, nugget diameter, tensile strength,
+and defect label) and 99 IR thermal images, saving the results to `result_rsw/`. Both **[B]**
+and **[C]** reuse this notebook's outputs (e.g., `step1_aggregated_samples.csv`) as inputs, and
+must therefore be preceded by a full run of this notebook. **[A]** has no external data
+dependency and can be executed independently of this notebook.
+
+**Data source:** The process parameters (current, weld time, pressure, etc.) and IR thermal
+images used to build this simulation environment originate from the 'Resistance Spot Welding
+Insights: A Dataset Integrating Process Parameters, Infrared, and Surface Imaging' dataset
+published on Kaggle (`download_rsw.py` retrieves the original CSV file and IR images from the
+Mendeley Data mirror of the same dataset).
+
+---
+
+## [A] `4_sim.ipynb` — Proof of Concept for Single-Variable Closed-Loop Control
+
+A numerical GMAW simulation in which every process variable -- surface temperature, contact
+angle, current, voltage -- is generated synthetically via `numpy.random`. The controller's
+manipulated variable is restricted to a single axis, torch travel speed $v$, and the controller
+uses the GMAW heat-input equation above to drive only the effective heat input back to its
+target value.
+
+<p align="center">
+  <img src="assets/dashboards/3x3_ultimate_dashboard_normalized.gif" width="90%">
+</p>
+
+| Position | Panel Content |
+|---|---|
+| Row 1, Col 1 | Torch trajectory and weld-pool cooling model |
+| Row 1, Col 2 | Bead and nugget cross-section |
+| Row 1, Col 3 | Normalized index of environmental variables (surface temperature, contact angle, geometry) |
+| Row 2, Col 1 | V-I phase diagram |
+| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$ |
+| Row 2, Col 3 | Normalized index of machine control variables |
+| Row 3, Col 1 | Manipulated control speed $v(t)$ |
+| Row 3, Col 2 | Estimated tensile-shear strength $F_{pull}(t)$ |
+| Row 3, Col 3 | Defect probability and guardrail performance |
+
+**Inter-panel relationships and key observation:** The only quantity the controller directly
+corrects is the effective heat input in Row 2, Col 2; its derived indicators -- the
+cross-section in Row 1, Col 2 and the strength estimate in Row 3, Col 2 -- stabilize along with
+it. Contact-angle (curvature) deviation, however, has no compensating actuator and remains a
+pure random walk, diverging freely in Row 1, Col 3 and Row 2, Col 1. As a consequence, the
+defect probability in Row 3, Col 3 oscillates at high frequency between 0% and 100% throughout
+the process. This is not a control failure but a demonstration of the structural limit of what
+a single-axis compensation scheme can address.
+
+---
+
+## [B] `2_sim_weld.ipynb` — Empirically Grounded Multi-Variable Closed-Loop Control
+
+This notebook resolves the single-axis limitation left by **[A]** using physical models learned
+from empirical data together with a multi-variable control architecture. Building on the
+theoretical result that lack of fusion is governed by $Q$ while expulsion is governed by
+$\theta$ and $P$, it simultaneously regulates the heat-input axis via current and weld time and
+the expulsion-suppression axis via pressure, recomputing the manipulated variables every frame
+through a grid search that minimizes the following objective function.
+
+$$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\frac{Q-Q_{target}}{Q_{target}}\right)^2$$
+
+<p align="center">
+  <img src="assets/dashboards/3x3_weld_dashboard_Eng.gif" width="90%">
+</p>
+
+*English-labeled version; the notebook also generates an equivalent Korean-labeled version
+(`figures/3x3_weld_dashboard.gif`) in a separate cell.*
+
+| Position | Panel Content |
+|---|---|
+| Row 1, Col 1 | Empirical IR thermal image |
+| Row 1, Col 2 | Bead and nugget cross-section (baseline vs. optimal) |
+| Row 1, Col 3 | Normalized index of environmental and quality variables |
+| Row 2, Col 1 | Process phase diagram (current x weld time) |
+| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$ |
+| Row 2, Col 3 | Normalized index of machine control variables |
+| Row 3, Col 1 | Real-time operating point on the fitted curves |
+| Row 3, Col 2 | Manipulated-variable correction trajectory |
+| Row 3, Col 3 | Aggregate defect probability and guardrail |
+
+**Inter-panel relationships:** Row 2, Col 1 and Row 2, Col 2 share the same risk/caution/safe
+threshold, defined as $Q_{lo}=Q_{min}-\sigma_{Q_{min}}$ and $Q_{hi}=Q_{min}+\sigma_{Q_{min}}$,
+and the source of this $Q_{min}$ is the fitted curve shown in Row 3, Col 1. Row 1, Col 3 and Row
+2, Col 3 use the same $I_{norm}$ scale, but the former displays outcomes (quality indicators)
+while the latter displays causes (machine manipulated variables).
+
+**Key results (preliminary verification):**
+
+| Metric | Baseline | Optimal | Reduction |
+|---|---|---|---|
+| Mean lack-of-fusion probability | 0.051 | 0.003 | 94% |
+| Mean expulsion probability | 0.025 | 0.019 | 23% |
+| Mean aggregate defect probability | 0.071 | 0.022 | 69.5% |
+
+Given the empirical evidence for a clear U-shaped relationship between pressure and defect rate
+(18.8% at 35 psi, 1.5% at 80 psi, 11.8% at 95 psi), pressure was adopted as a second control
+axis independent of heat input. As a result, without the wide 0-100% oscillation in defect
+probability observed in **[A]**, the aggregate defect probability was reduced by roughly 70%
+relative to uncompensated operation.
+
+**Limitations:** Surface-temperature and plate-curvature deviations are not measured in the
+original dataset and are instead synthesized within a physically plausible range. The absolute
+magnitude of the improvement therefore does not guarantee real-world field performance and
+should be interpreted as a proof of concept validating the control methodology. In addition,
+because the expulsion-probability model is additive in contact angle and pressure, the optimal
+pressure converges to a constant regardless of contact angle -- a consequence of the dataset
+containing no empirical samples at the combination of a 15-degree electrode angle and 80 psi
+pressure.
+
+---
+
+## [C] `3_rsw_adaptive_finetuning.ipynb` — Sensor-Based Adaptive Judgment with Calibration
+
+Whereas **[A]** and **[B]** adopt the perspective of a controller -- a structure that
+recomputes manipulated variables to drive the process back to target -- **[C]** adopts the
+perspective of a classifier: how accurately can defects be predicted under a given condition.
+The 493 empirical welds are stratified and split 7:2:1; the standard physical models are
+trained on the train split, plate-curvature and surface-temperature deviations are synthetically
+injected into the valid/test splits, and the notebook compares a baseline that is entirely
+unaware of this deviation against an adaptive model that detects it through noisy sensors and
+calibrates the correction via gradient descent, evaluating which of the two yields judgments
+closer to the (synthetic) ground truth. Surface temperature is assumed to alter contact
+resistance linearly, as follows.
+
+$$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
+
+<p align="center">
+  <img src="assets/dashboards/adaptive_dashboard.gif" width="90%">
+</p>
+
+*`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring Dashboard` -- a demonstration over
+the 99 welds for which IR images are available.*
+
+| Position | Panel Content |
+|---|---|
+| Row 1, Col 1 | Empirical IR thermal image with a 10 mm scale bar |
+| Row 1, Col 2 | Rolling accuracy of baseline vs. adaptive |
+| Row 1, Col 3 | Empirical process phase diagram (current x weld time) |
+| Row 2, Col 1 | Surface-temperature deviation: ground truth (SIMULATED) vs. sensor-detected value |
+| Row 2, Col 2 | Curvature deviation: ground truth (SIMULATED) vs. sensor-detected value |
+| Row 2, Col 3 | Process phase diagram ($Q$ x effective contact angle), with ground-truth, baseline, and adaptive points |
+| Row 3, Col 1 | Tensile-strength prediction curve |
+| Row 3, Col 2 | Nugget-growth curve |
+| Row 3, Col 3 | Fitted lack-of-fusion probability curve |
+
+**Inter-panel relationships:** The risk/caution/safe background in Row 2, Col 1 is obtained by
+inverting the lack-of-fusion threshold $Q_{min}$ shown in Row 3, Col 3 -- with that sample's
+current and weld time held fixed -- onto the $\Delta T$ axis; the background in Row 2, Col 2 is
+obtained by inverting the expulsion threshold (an electrode angle of 7.5 degrees) onto the
+contact-angle-deviation axis. The two thresholds rest on different physical quantities (heat
+input versus contact angle), and Row 1, Col 3 displays both together on a single empirical
+phase diagram -- the lack-of-fusion zone as its background and the expulsion verdict in its
+title -- allowing all three panels to be compared side by side.
+
+**Key results (TEST, approximately 50 samples):**
+
+| Task | Method | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Bad (heat input) | baseline / adaptive | 1.000 | 1.000 | 1.000 | 1.000 |
+| Explode (curvature) | baseline | 0.760 | 1.000 | 0.707 | 0.829 |
+| Explode (curvature) | adaptive | 0.960 | 0.976 | 0.976 | 0.976 |
+
+For the expulsion (curvature) task, the adaptive model substantially reduces the risk samples
+missed by the baseline (recall 0.707 -> 0.976), demonstrating that acting on imperfect, noisy
+sensor information is systematically better than ignoring it. For the lack-of-fusion (heat
+input) task, the baseline and adaptive metrics are identical because this TEST split contains
+only two positive samples; this reflects a lack of statistical power to discriminate the two
+methods at this sample size, not an absence of improvement.
+
+**Limitations:** Because the ground truth itself is computed from injected synthetic
+deviations, this result is not a performance validation against unseen empirical data, but a
+methodological demonstration that the deviation-detection-and-calibration mechanism functions
+in principle.
+
+---
+
+## Reproduction Steps
+
+1. Run `download_rsw.py` -- downloads the empirical CSV file and 99 IR images into
+   `Data/Resistance Spot Welding Insights/`.
+2. Run All in `1_rsw_optimization.ipynb` -- fits physical models to the 493 empirical welds and
+   saves the outputs to `result_rsw/`, which **[B]** and **[C]** consume as inputs.
+3. Run All in `2_sim_weld.ipynb` -- saves **[B]**'s dashboard GIFs (Korean and English) and
+   intermediate CSV files to `result_sim_weld/`.
+4. Run All in `3_rsw_adaptive_finetuning.ipynb` -- saves **[C]**'s dashboard GIF and
+   intermediate CSV files to `result_rsw_adaptive/`.
+5. Run All in `4_sim.ipynb` -- saves **[A]**'s dashboard GIF to `result_sim/`; this step has no
+   external data dependency and can be executed independently of steps 1-2.
+
+## Output Structure
+
+Cell-level outputs from each notebook are saved under `result_rsw/`, `result_sim/`,
+`result_sim_weld/`, and `result_rsw_adaptive/` following the `stepN_description.csv`
+convention, with dashboard animations stored as GIF files under each folder's `figures/`
+subdirectory. All of these are regenerated identically by re-running the notebooks and are
+therefore excluded from the repository (see `.gitignore`). The three GIF files embedded in this
+document are kept separately under `assets/dashboards/`.
