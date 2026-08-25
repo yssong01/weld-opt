@@ -7,12 +7,12 @@
 대응 성능을 3x3 디지털 트윈 대시보드로 시각화한 세 개의 노트북과, 그 기반이 되는 물리 모델
 피팅 노트북 한 편을 담고 있다.
 
-| 노트북 | 데이터 성격 | 무엇을 검증하는가 |
-|---|---|---|
-| `1_rsw_optimization.ipynb` | 실측 493건 | 물리 모델 피팅(선행 노트북, 아래 세 노트북의 공통 기반) |
-| **[B]** `2_sim_weld.ipynb` | 실측 + 합성 외란 결합 | 다변수(전류·통전시간·가압력) 폐루프 제어의 실시간 대응 |
-| **[C]** `3_rsw_adaptive_finetuning.ipynb` | 실측 + 합성 외란 결합 | 센서 감지·보정 기반 적응형 판정의 baseline 대비 성능 |
-| **[A]** `4_sim.ipynb` | 전 구간 합성(Synthetic) | 단일변수(토치 속도) 폐루프 제어의 개념 증명 |
+| 노트북                                    | 데이터 성격             | 무엇을 검증하는가                                       |
+| ----------------------------------------- | ----------------------- | ------------------------------------------------------- |
+| `1_rsw_optimization.ipynb`                | 실측 493건              | 물리 모델 피팅(선행 노트북, 아래 세 노트북의 공통 기반) |
+| **[B]** `2_sim_weld.ipynb`                | 실측 + 합성 외란 결합   | 다변수(전류·통전시간·가압력) 폐루프 제어의 실시간 대응  |
+| **[C]** `3_rsw_adaptive_finetuning.ipynb` | 실측 + 합성 외란 결합   | 센서 감지·보정 기반 적응형 판정의 baseline 대비 성능    |
+| **[A]** `4_sim.ipynb`                     | 전 구간 합성(Synthetic) | 단일변수(토치 속도) 폐루프 제어의 개념 증명             |
 
 파일명 앞의 숫자(1~4)는 **권장 실행 순서**를 나타낸다. `1_rsw_optimization.ipynb`을 가장 먼저
 실행해야 하며, `4_sim.ipynb`는 외부 의존성이 없어 어느 시점에 실행해도 무방하다. 반면 **[A]**,
@@ -40,22 +40,22 @@ Dashboard`라는 제목의 다변수 제어기로 확장하고, 실측 저항 �
 
 $$Q = I^2 R t$$
 
-| 기호 | 의미 |
-|---|---|
-| $Q$ | 열입력(단위시간당 발열량의 누적 지표) |
-| $I$ | 용접 전류 |
-| $R$ | 접촉저항(원 데이터셋에 미계측 -- 1 또는 온도 함수로 근사) |
-| $t$ | 통전시간 |
+| 기호 | 의미                                                      |
+| ---- | --------------------------------------------------------- |
+| $Q$  | 열입력(단위시간당 발열량의 누적 지표)                     |
+| $I$  | 용접 전류                                                 |
+| $R$  | 접촉저항(원 데이터셋에 미계측 -- 1 또는 온도 함수로 근사) |
+| $t$  | 통전시간                                                  |
 
 `1_rsw_optimization.ipynb`는 실측 493건에 아래 네 개의 물리 모델을 피팅하며, **[B]**, **[C]**는
 이 피팅 결과를 그대로 재사용한다.
 
-| 모델 | 수식 | 항의 의미 |
-|---|---|---|
-| 미융착 확률 | $p_{bad}(Q)=\dfrac{1}{1+e^{k(Q-Q_{min})}}$ | $Q_{min}$: 확률 50%가 되는 임계 열입력, $k$: 전이 급경사도 |
-| 팽출 확률 | $p_{exp}(\theta,P)=\dfrac{1}{1+e^{-z}},\ z=b_0+b_\theta\theta+b_1P+b_2P^2$ | $\theta$: 전극각도, $P$: 가압력, $b_2$: 2차항 계수(U자형 반영) |
-| 너겟 성장 | $D(Q)=D_0+(D_{max}-D_0)(1-e^{-Q/\tau})$ | $D_0$: 초기 지름, $D_{max}$: 포화 지름, $\tau$: 성장 시상수 |
-| 인장강도 | $F=aD+b$ | $a, b$: 너겟지름-인장강도 선형회귀 계수 |
+| 모델        | 수식                                                                       | 항의 의미                                                      |
+| ----------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 미융착 확률 | $p_{bad}(Q)=\dfrac{1}{1+e^{k(Q-Q_{min})}}$                                 | $Q_{min}$: 확률 50%가 되는 임계 열입력, $k$: 전이 급경사도     |
+| 팽출 확률   | $p_{exp}(\theta,P)=\dfrac{1}{1+e^{-z}},\ z=b_0+b_\theta\theta+b_1P+b_2P^2$ | $\theta$: 전극각도, $P$: 가압력, $b_2$: 2차항 계수(U자형 반영) |
+| 너겟 성장   | $D(Q)=D_0+(D_{max}-D_0)(1-e^{-Q/\tau})$                                    | $D_0$: 초기 지름, $D_{max}$: 포화 지름, $\tau$: 성장 시상수    |
+| 인장강도    | $F=aD+b$                                                                   | $a, b$: 너겟지름-인장강도 선형회귀 계수                        |
 
 미융착은 $Q$ 하나로, 팽출은 $\theta$와 $P$로 서로 다른 물리 인자에 지배된다는 사실이 **[B]**의
 다변수 제어축 분리와 **[C]**의 두 과제 독립 평가에 공통된 근거다. 너겟 성장과 인장강도 모델은
@@ -67,23 +67,24 @@ $Q \to D \to F$로 이어지는 인과 사슬을 이루며, 세 노트북의 "�
 **[A]**는 저항 점용접이 아니라 가스 금속 아크 용접(GMAW)을 다루며, 열입력이 토치 이동 속도에
 반비례한다는 별도의 물리를 사용한다.
 
-$$V=V_0+E\,l_a,\qquad Q=\eta\frac{VI}{v},\qquad WFS=MR=\alpha I+\beta L_e I^2$$
+$$V=V_0+E\·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
 
-| 기호 | 의미 |
-|---|---|
-| $V, V_0, E, l_a$ | 아크 전압, 최소 전압강하, 전계강도, 아크 길이 편차 |
-| $\eta, v$ | 열효율(약 0.8), 토치 이동 속도(유일한 조작 변수) |
-| $WFS, MR$ | 와이어 송급속도, 용융속도(동적 평형 관계) |
-| $\alpha I,\ \beta L_e I^2$ | 아크 복사열 성분, 와이어 저항의 줄 발열 성분 |
+| 기호                       | 의미                                               |
+| -------------------------- | -------------------------------------------------- |
+| $V, V_0, E, l_a$           | 아크 전압, 최소 전압강하, 전계강도, 아크 길이 편차 |
+| $\eta, v$                  | 열효율(약 0.8), 토치 이동 속도(유일한 조작 변수)   |
+| $WFS, MR$                  | 와이어 송급속도, 용융속도(동적 평형 관계)          |
+| $\alpha I,\ \beta L_e I^2$ | 아크 복사열 성분, 와이어 저항의 줄 발열 성분       |
 
 ### 대시보드 공통 표기: 공차 기반 정규화 지수
 
 **[A]**, **[B]**의 막대그래프 패널은 단위가 다른 여러 변수를 한 축에서 비교하기 위해 다음
 지수를 사용한다.
 
-$$I_{norm}=100+10\left(\frac{X-X_0}{\Delta X_{safe}}\right)\ [\%]$$
+$$I_{norm}=100+10\left(\frac{X-X_0}{\Delta X_{safe}}\right)$$
 
-$X$는 실시간 측정값, $X_0$는 표준값, $\Delta X_{safe}$는 변수별 허용 공차다. 100%가 표준
+$I_{norm}$의 단위는 %이다. $X$는 실시간 측정값, $X_0$는 표준값, $\Delta X_{safe}$는 변수별
+허용 공차다. 100%가 표준
 조건이며, 90~110%는 안전, 75~125%는 경계, 그 밖은 위험 구간으로 배경색이 채색된다.
 
 ---
@@ -113,17 +114,17 @@ Parameters, Infrared, and Surface Imaging' 데이터셋을 출처로 한다(`dow
   <img src="assets/dashboards/3x3_ultimate_dashboard_normalized.gif" width="90%">
 </p>
 
-| 위치 | 패널 내용 |
-|---|---|
-| 1행1열 | 토치 궤적 및 용융풀 냉각 모델 |
-| 1행2열 | 비드 및 너겟 단면 |
+| 위치   | 패널 내용                                   |
+| ------ | ------------------------------------------- |
+| 1행1열 | 토치 궤적 및 용융풀 냉각 모델               |
+| 1행2열 | 비드 및 너겟 단면                           |
 | 1행3열 | 환경 변수(표면온도·접촉각·형상) 정규화 지수 |
-| 2행1열 | V-I 위상 다이어그램 |
-| 2행2열 | 유효 열입력 $Q_{eff}(t)$ 추이 |
-| 2행3열 | 장비 제어 변수 정규화 지수 |
-| 3행1열 | 조작 변수 제어 속도 $v(t)$ |
-| 3행2열 | 인장 전단 강도 추정 $F_{pull}(t)$ |
-| 3행3열 | 결함 확률 및 가드레일 |
+| 2행1열 | V-I 위상 다이어그램                         |
+| 2행2열 | 유효 열입력 $Q_{eff}(t)$ 추이               |
+| 2행3열 | 장비 제어 변수 정규화 지수                  |
+| 3행1열 | 조작 변수 제어 속도 $v(t)$                  |
+| 3행2열 | 인장 전단 강도 추정 $F_{pull}(t)$           |
+| 3행3열 | 결함 확률 및 가드레일                       |
 
 **패널 간 관계 및 핵심 관측:** 제어기가 직접 보정하는 것은 2행2열의 유효 열입력뿐이며, 그
 파생 지표인 1행2열(단면)과 3행2열(강도)은 함께 안정화된다. 그러나 접촉각(굴곡) 편차는 보정
@@ -146,20 +147,20 @@ $$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\f
   <img src="assets/dashboards/3x3_weld_dashboard_Eng.gif" width="90%">
 </p>
 
-*영문 표기 버전이며, 노트북 안에는 동일한 내용의 국문 표기 버전(`figures/3x3_weld_dashboard.gif`)도
-별도 셀로 함께 생성된다.*
+_영문 표기 버전이며, 노트북 안에는 동일한 내용의 국문 표기 버전(`figures/3x3_weld_dashboard.gif`)도
+별도 셀로 함께 생성된다._
 
-| 위치 | 패널 내용 |
-|---|---|
-| 1행1열 | 실측 IR 열화상 이미지 |
+| 위치   | 패널 내용                              |
+| ------ | -------------------------------------- |
+| 1행1열 | 실측 IR 열화상 이미지                  |
 | 1행2열 | 비드 및 너겟 단면(baseline 대 optimal) |
-| 1행3열 | 환경 및 품질 정규화 지수 |
-| 2행1열 | 공정 위상도(전류 x 통전시간) |
-| 2행2열 | 유효 열입력 $Q_{eff}(t)$ 추이 |
-| 2행3열 | 장비 제어 변수 정규화 지수 |
-| 3행1열 | 피팅 함수 위 실시간 동작점 |
-| 3행2열 | 조작 변수 보정 궤적 |
-| 3행3열 | 종합 결함 확률과 가드레일 |
+| 1행3열 | 환경 및 품질 정규화 지수               |
+| 2행1열 | 공정 위상도(전류 x 통전시간)           |
+| 2행2열 | 유효 열입력 $Q_{eff}(t)$ 추이          |
+| 2행3열 | 장비 제어 변수 정규화 지수             |
+| 3행1열 | 피팅 함수 위 실시간 동작점             |
+| 3행2열 | 조작 변수 보정 궤적                    |
+| 3행3열 | 종합 결함 확률과 가드레일              |
 
 **패널 간 관계:** 2행1열과 2행2열은 $Q_{lo}=Q_{min}-\sigma_{Q_{min}}$, $Q_{hi}=Q_{min}+\sigma_{Q_{min}}$
 로 정의된 동일한 위험/경계/안전 임계값을 공유하며, 그 $Q_{min}$의 출처가 3행1열의 피팅 곡선이다.
@@ -168,11 +169,11 @@ $$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\f
 
 **주요 결과(예비 검증):**
 
-| 지표 | baseline | optimal | 감소율 |
-|---|---|---|---|
-| 미융착 확률 평균 | 0.051 | 0.003 | 94% |
-| 팽출 확률 평균 | 0.025 | 0.019 | 23% |
-| 종합 결함 확률 평균 | 0.071 | 0.022 | 69.5% |
+| 지표                | baseline | optimal | 감소율 |
+| ------------------- | -------- | ------- | ------ |
+| 미융착 확률 평균    | 0.051    | 0.003   | 94%    |
+| 팽출 확률 평균      | 0.025    | 0.019   | 23%    |
+| 종합 결함 확률 평균 | 0.071    | 0.022   | 69.5%  |
 
 가압력에 대한 결함률이 명확한 U자형 관계(35 psi 18.8%, 80 psi 1.5%, 95 psi 11.8%)를 보인다는
 실측 근거로부터, 가압력을 열입력과 독립적인 제2 제어축으로 채택하였다. 그 결과 **[A]**에서
@@ -202,21 +203,21 @@ $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ 
   <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
 </p>
 
-*영문 표기 버전(`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring Dashboard`, IR
+_영문 표기 버전(`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring Dashboard`, IR
 이미지 보유 99건 시연용)이며, 노트북 안에는 동일한 내용의 국문 표기 버전
-(`figures/adaptive_dashboard.gif`)도 별도 셀로 함께 생성된다.*
+(`figures/adaptive_dashboard.gif`)도 별도 셀로 함께 생성된다._
 
-| 위치 | 패널 내용 |
-|---|---|
-| 1행1열 | 실측 IR 열화상 이미지 + 10mm 축척바 |
-| 1행2열 | baseline 대 adaptive 누적 정확도 |
-| 1행3열 | 실측 공정 위상도(전류 x 통전시간) |
-| 2행1열 | 표면온도 편차: 참값(SIMULATED) 대 센서 감지값 |
-| 2행2열 | 굴곡 편차: 참값(SIMULATED) 대 센서 감지값 |
+| 위치   | 패널 내용                                                  |
+| ------ | ---------------------------------------------------------- |
+| 1행1열 | 실측 IR 열화상 이미지 + 10mm 축척바                        |
+| 1행2열 | baseline 대 adaptive 누적 정확도                           |
+| 1행3열 | 실측 공정 위상도(전류 x 통전시간)                          |
+| 2행1열 | 표면온도 편차: 참값(SIMULATED) 대 센서 감지값              |
+| 2행2열 | 굴곡 편차: 참값(SIMULATED) 대 센서 감지값                  |
 | 2행3열 | 공정 위상도($Q$ x 유효 접촉각), 참값·baseline·adaptive 3점 |
-| 3행1열 | 인장강도 예측 곡선 |
-| 3행2열 | 너겟 성장 곡선 |
-| 3행3열 | 미융착 확률 피팅 곡선 |
+| 3행1열 | 인장강도 예측 곡선                                         |
+| 3행2열 | 너겟 성장 곡선                                             |
+| 3행3열 | 미융착 확률 피팅 곡선                                      |
 
 **패널 간 관계:** 2행1열의 위험/경계/안전 배경은 3행3열의 미융착 임계값 $Q_{min}$을 그 샘플의
 전류·통전시간을 고정한 채 $\Delta T$ 축으로 역산한 것이고, 2행2열의 배경은 팽출 임계값(전극각도
@@ -226,11 +227,11 @@ $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ 
 
 **주요 결과(TEST 약 50건):**
 
-| 과제 | 방식 | Accuracy | Precision | Recall | F1 |
-|---|---|---|---|---|---|
-| Bad(열입력) | baseline / adaptive | 1.000 | 1.000 | 1.000 | 1.000 |
-| Explode(굴곡) | baseline | 0.760 | 1.000 | 0.707 | 0.829 |
-| Explode(굴곡) | adaptive | 0.960 | 0.976 | 0.976 | 0.976 |
+| 과제          | 방식                | Accuracy | Precision | Recall | F1    |
+| ------------- | ------------------- | -------- | --------- | ------ | ----- |
+| Bad(열입력)   | baseline / adaptive | 1.000    | 1.000     | 1.000  | 1.000 |
+| Explode(굴곡) | baseline            | 0.760    | 1.000     | 0.707  | 0.829 |
+| Explode(굴곡) | adaptive            | 0.960    | 0.976     | 0.976  | 0.976 |
 
 Explode(굴곡) 과제에서 adaptive는 baseline이 놓치던 위험 표본(recall 0.707 -> 0.976)을
 크게 줄여, 노이즈가 섞인 불완전한 센서 정보라도 활용하는 편이 이를 무시하는 것보다 체계적으로
@@ -265,6 +266,7 @@ GIF로 저장된다. 모두 노트북 재실행으로 동일하게 재생성되�
 (`.gitignore` 참고). 본문에 첨부한 세 개의 GIF는 `assets/dashboards/`에 별도로 보관한다.
 
 ---
+
 ---
 
 # Welding Process Digital Twin: A Collection of Closed-Loop Control Simulation Dashboards
@@ -277,12 +279,12 @@ deviation, etc.), and visualize the real-time response of a closed-loop controll
 3x3 digital-twin dashboard, together with the physical-model-fitting notebook that underlies
 all three.
 
-| Notebook | Nature of Data | What It Validates |
-|---|---|---|
-| `1_rsw_optimization.ipynb` | 493 empirical welds | Physical model fitting (prerequisite notebook; the common foundation for the three notebooks below) |
-| **[B]** `2_sim_weld.ipynb` | Empirical data combined with synthetic disturbance | Real-time response of multi-variable (current, weld time, pressure) closed-loop control |
-| **[C]** `3_rsw_adaptive_finetuning.ipynb` | Empirical data combined with synthetic disturbance | Performance of sensor-based, calibrated adaptive judgment relative to a fixed baseline |
-| **[A]** `4_sim.ipynb` | Fully synthetic | Proof of concept for single-variable (torch speed) closed-loop control |
+| Notebook                                  | Nature of Data                                     | What It Validates                                                                                   |
+| ----------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `1_rsw_optimization.ipynb`                | 493 empirical welds                                | Physical model fitting (prerequisite notebook; the common foundation for the three notebooks below) |
+| **[B]** `2_sim_weld.ipynb`                | Empirical data combined with synthetic disturbance | Real-time response of multi-variable (current, weld time, pressure) closed-loop control             |
+| **[C]** `3_rsw_adaptive_finetuning.ipynb` | Empirical data combined with synthetic disturbance | Performance of sensor-based, calibrated adaptive judgment relative to a fixed baseline              |
+| **[A]** `4_sim.ipynb`                     | Fully synthetic                                    | Proof of concept for single-variable (torch speed) closed-loop control                              |
 
 The leading digit (1-4) in each filename denotes the **recommended execution order**:
 `1_rsw_optimization.ipynb` must be run first, whereas `4_sim.ipynb` has no external
@@ -316,22 +318,22 @@ expels molten metal, a defect termed **expulsion (Explode)**.
 
 $$Q = I^2 R t$$
 
-| Symbol | Meaning |
-|---|---|
-| $Q$ | Heat input (a cumulative indicator of heat generated per unit time) |
-| $I$ | Welding current |
-| $R$ | Contact resistance (not measured in the original dataset -- approximated as 1 or as a function of temperature) |
-| $t$ | Weld (current-on) time |
+| Symbol | Meaning                                                                                                        |
+| ------ | -------------------------------------------------------------------------------------------------------------- |
+| $Q$    | Heat input (a cumulative indicator of heat generated per unit time)                                            |
+| $I$    | Welding current                                                                                                |
+| $R$    | Contact resistance (not measured in the original dataset -- approximated as 1 or as a function of temperature) |
+| $t$    | Weld (current-on) time                                                                                         |
 
 `1_rsw_optimization.ipynb` fits the following four physical models to the 493 empirical welds,
 and **[B]** and **[C]** both reuse these fitted results directly.
 
-| Model | Equation | Meaning of Terms |
-|---|---|---|
-| Lack-of-fusion probability | $p_{bad}(Q)=\dfrac{1}{1+e^{k(Q-Q_{min})}}$ | $Q_{min}$: heat input at which the probability equals 0.5; $k$: steepness of the transition |
-| Expulsion probability | $p_{exp}(\theta,P)=\dfrac{1}{1+e^{-z}},\ z=b_0+b_\theta\theta+b_1P+b_2P^2$ | $\theta$: electrode angle; $P$: electrode pressure; $b_2$: quadratic coefficient capturing the U-shaped relationship |
-| Nugget growth | $D(Q)=D_0+(D_{max}-D_0)(1-e^{-Q/\tau})$ | $D_0$: initial diameter; $D_{max}$: saturation diameter; $\tau$: growth time constant |
-| Tensile strength | $F=aD+b$ | $a, b$: coefficients of the linear regression of tensile strength on nugget diameter |
+| Model                      | Equation                                                                   | Meaning of Terms                                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Lack-of-fusion probability | $p_{bad}(Q)=\dfrac{1}{1+e^{k(Q-Q_{min})}}$                                 | $Q_{min}$: heat input at which the probability equals 0.5; $k$: steepness of the transition                          |
+| Expulsion probability      | $p_{exp}(\theta,P)=\dfrac{1}{1+e^{-z}},\ z=b_0+b_\theta\theta+b_1P+b_2P^2$ | $\theta$: electrode angle; $P$: electrode pressure; $b_2$: quadratic coefficient capturing the U-shaped relationship |
+| Nugget growth              | $D(Q)=D_0+(D_{max}-D_0)(1-e^{-Q/\tau})$                                    | $D_0$: initial diameter; $D_{max}$: saturation diameter; $\tau$: growth time constant                                |
+| Tensile strength           | $F=aD+b$                                                                   | $a, b$: coefficients of the linear regression of tensile strength on nugget diameter                                 |
 
 The fact that lack of fusion is governed solely by $Q$, whereas expulsion is governed jointly
 by $\theta$ and $P$, is the shared rationale behind the separation of control axes in **[B]**
@@ -344,23 +346,24 @@ the fitted curve" panel across the three notebooks visualizes.
 **[A]** models not resistance spot welding but gas metal arc welding (GMAW), which follows a
 distinct physics in which heat input is inversely proportional to torch travel speed.
 
-$$V=V_0+E\,l_a,\qquad Q=\eta\frac{VI}{v},\qquad WFS=MR=\alpha I+\beta L_e I^2$$
+$$V=V_0+E\·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
 
-| Symbol | Meaning |
-|---|---|
-| $V, V_0, E, l_a$ | Arc voltage, minimum voltage drop, electric field strength, arc-length deviation |
-| $\eta, v$ | Thermal efficiency (approximately 0.8), torch travel speed (the sole manipulated variable) |
-| $WFS, MR$ | Wire feed speed, melting rate (held in dynamic equilibrium) |
-| $\alpha I,\ \beta L_e I^2$ | Arc radiative-heating component, Joule-heating component from wire resistance |
+| Symbol                     | Meaning                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| $V, V_0, E, l_a$           | Arc voltage, minimum voltage drop, electric field strength, arc-length deviation           |
+| $\eta, v$                  | Thermal efficiency (approximately 0.8), torch travel speed (the sole manipulated variable) |
+| $WFS, MR$                  | Wire feed speed, melting rate (held in dynamic equilibrium)                                |
+| $\alpha I,\ \beta L_e I^2$ | Arc radiative-heating component, Joule-heating component from wire resistance              |
 
 ### Shared Dashboard Convention: Tolerance-Based Normalization Index
 
 The bar-chart panels in **[A]** and **[B]** compare variables of heterogeneous units on a
 single axis using the following index.
 
-$$I_{norm}=100+10\left(\frac{X-X_0}{\Delta X_{safe}}\right)\ [\%]$$
+$$I_{norm}=100+10\left(\frac{X-X_0}{\Delta X_{safe}}\right)$$
 
-Here $X$ is the real-time measured value, $X_0$ is the standard (target) value, and $\Delta
+$I_{norm}$ is expressed in percent. Here $X$ is the real-time measured value, $X_0$ is the
+standard (target) value, and $\Delta
 X_{safe}$ is the variable-specific tolerance. A value of 100% corresponds to standard
 condition; the background is colored green (safe) for 90-110%, yellow (caution) for 75-125%,
 and red (risk) outside that range.
@@ -396,17 +399,17 @@ target value.
   <img src="assets/dashboards/3x3_ultimate_dashboard_normalized.gif" width="90%">
 </p>
 
-| Position | Panel Content |
-|---|---|
-| Row 1, Col 1 | Torch trajectory and weld-pool cooling model |
-| Row 1, Col 2 | Bead and nugget cross-section |
+| Position     | Panel Content                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Row 1, Col 1 | Torch trajectory and weld-pool cooling model                                               |
+| Row 1, Col 2 | Bead and nugget cross-section                                                              |
 | Row 1, Col 3 | Normalized index of environmental variables (surface temperature, contact angle, geometry) |
-| Row 2, Col 1 | V-I phase diagram |
-| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$ |
-| Row 2, Col 3 | Normalized index of machine control variables |
-| Row 3, Col 1 | Manipulated control speed $v(t)$ |
-| Row 3, Col 2 | Estimated tensile-shear strength $F_{pull}(t)$ |
-| Row 3, Col 3 | Defect probability and guardrail performance |
+| Row 2, Col 1 | V-I phase diagram                                                                          |
+| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$                                                 |
+| Row 2, Col 3 | Normalized index of machine control variables                                              |
+| Row 3, Col 1 | Manipulated control speed $v(t)$                                                           |
+| Row 3, Col 2 | Estimated tensile-shear strength $F_{pull}(t)$                                             |
+| Row 3, Col 3 | Defect probability and guardrail performance                                               |
 
 **Inter-panel relationships and key observation:** The only quantity the controller directly
 corrects is the effective heat input in Row 2, Col 2; its derived indicators -- the
@@ -434,20 +437,20 @@ $$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\f
   <img src="assets/dashboards/3x3_weld_dashboard_Eng.gif" width="90%">
 </p>
 
-*English-labeled version; the notebook also generates an equivalent Korean-labeled version
-(`figures/3x3_weld_dashboard.gif`) in a separate cell.*
+_English-labeled version; the notebook also generates an equivalent Korean-labeled version
+(`figures/3x3_weld_dashboard.gif`) in a separate cell._
 
-| Position | Panel Content |
-|---|---|
-| Row 1, Col 1 | Empirical IR thermal image |
-| Row 1, Col 2 | Bead and nugget cross-section (baseline vs. optimal) |
+| Position     | Panel Content                                           |
+| ------------ | ------------------------------------------------------- |
+| Row 1, Col 1 | Empirical IR thermal image                              |
+| Row 1, Col 2 | Bead and nugget cross-section (baseline vs. optimal)    |
 | Row 1, Col 3 | Normalized index of environmental and quality variables |
-| Row 2, Col 1 | Process phase diagram (current x weld time) |
-| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$ |
-| Row 2, Col 3 | Normalized index of machine control variables |
-| Row 3, Col 1 | Real-time operating point on the fitted curves |
-| Row 3, Col 2 | Manipulated-variable correction trajectory |
-| Row 3, Col 3 | Aggregate defect probability and guardrail |
+| Row 2, Col 1 | Process phase diagram (current x weld time)             |
+| Row 2, Col 2 | Trend of effective heat input $Q_{eff}(t)$              |
+| Row 2, Col 3 | Normalized index of machine control variables           |
+| Row 3, Col 1 | Real-time operating point on the fitted curves          |
+| Row 3, Col 2 | Manipulated-variable correction trajectory              |
+| Row 3, Col 3 | Aggregate defect probability and guardrail              |
 
 **Inter-panel relationships:** Row 2, Col 1 and Row 2, Col 2 share the same risk/caution/safe
 threshold, defined as $Q_{lo}=Q_{min}-\sigma_{Q_{min}}$ and $Q_{hi}=Q_{min}+\sigma_{Q_{min}}$,
@@ -457,11 +460,11 @@ while the latter displays causes (machine manipulated variables).
 
 **Key results (preliminary verification):**
 
-| Metric | Baseline | Optimal | Reduction |
-|---|---|---|---|
-| Mean lack-of-fusion probability | 0.051 | 0.003 | 94% |
-| Mean expulsion probability | 0.025 | 0.019 | 23% |
-| Mean aggregate defect probability | 0.071 | 0.022 | 69.5% |
+| Metric                            | Baseline | Optimal | Reduction |
+| --------------------------------- | -------- | ------- | --------- |
+| Mean lack-of-fusion probability   | 0.051    | 0.003   | 94%       |
+| Mean expulsion probability        | 0.025    | 0.019   | 23%       |
+| Mean aggregate defect probability | 0.071    | 0.022   | 69.5%     |
 
 Given the empirical evidence for a clear U-shaped relationship between pressure and defect rate
 (18.8% at 35 psi, 1.5% at 80 psi, 11.8% at 95 psi), pressure was adopted as a second control
@@ -499,22 +502,22 @@ $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ 
   <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
 </p>
 
-*English-labeled version (`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring
+_English-labeled version (`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring
 Dashboard`, a demonstration over the 99 welds for which IR images are available); the notebook
 also generates an equivalent Korean-labeled version (`figures/adaptive_dashboard.gif`) in a
-separate cell.*
+separate cell._
 
-| Position | Panel Content |
-|---|---|
-| Row 1, Col 1 | Empirical IR thermal image with a 10 mm scale bar |
-| Row 1, Col 2 | Rolling accuracy of baseline vs. adaptive |
-| Row 1, Col 3 | Empirical process phase diagram (current x weld time) |
-| Row 2, Col 1 | Surface-temperature deviation: ground truth (SIMULATED) vs. sensor-detected value |
-| Row 2, Col 2 | Curvature deviation: ground truth (SIMULATED) vs. sensor-detected value |
+| Position     | Panel Content                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| Row 1, Col 1 | Empirical IR thermal image with a 10 mm scale bar                                                       |
+| Row 1, Col 2 | Rolling accuracy of baseline vs. adaptive                                                               |
+| Row 1, Col 3 | Empirical process phase diagram (current x weld time)                                                   |
+| Row 2, Col 1 | Surface-temperature deviation: ground truth (SIMULATED) vs. sensor-detected value                       |
+| Row 2, Col 2 | Curvature deviation: ground truth (SIMULATED) vs. sensor-detected value                                 |
 | Row 2, Col 3 | Process phase diagram ($Q$ x effective contact angle), with ground-truth, baseline, and adaptive points |
-| Row 3, Col 1 | Tensile-strength prediction curve |
-| Row 3, Col 2 | Nugget-growth curve |
-| Row 3, Col 3 | Fitted lack-of-fusion probability curve |
+| Row 3, Col 1 | Tensile-strength prediction curve                                                                       |
+| Row 3, Col 2 | Nugget-growth curve                                                                                     |
+| Row 3, Col 3 | Fitted lack-of-fusion probability curve                                                                 |
 
 **Inter-panel relationships:** The risk/caution/safe background in Row 2, Col 1 is obtained by
 inverting the lack-of-fusion threshold $Q_{min}$ shown in Row 3, Col 3 -- with that sample's
@@ -527,11 +530,11 @@ title -- allowing all three panels to be compared side by side.
 
 **Key results (TEST, approximately 50 samples):**
 
-| Task | Method | Accuracy | Precision | Recall | F1 |
-|---|---|---|---|---|---|
-| Bad (heat input) | baseline / adaptive | 1.000 | 1.000 | 1.000 | 1.000 |
-| Explode (curvature) | baseline | 0.760 | 1.000 | 0.707 | 0.829 |
-| Explode (curvature) | adaptive | 0.960 | 0.976 | 0.976 | 0.976 |
+| Task                | Method              | Accuracy | Precision | Recall | F1    |
+| ------------------- | ------------------- | -------- | --------- | ------ | ----- |
+| Bad (heat input)    | baseline / adaptive | 1.000    | 1.000     | 1.000  | 1.000 |
+| Explode (curvature) | baseline            | 0.760    | 1.000     | 0.707  | 0.829 |
+| Explode (curvature) | adaptive            | 0.960    | 0.976     | 0.976  | 0.976 |
 
 For the expulsion (curvature) task, the adaptive model substantially reduces the risk samples
 missed by the baseline (recall 0.707 -> 0.976), demonstrating that acting on imperfect, noisy
