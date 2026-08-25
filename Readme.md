@@ -67,7 +67,7 @@ $Q \to D \to F$로 이어지는 인과 사슬을 이루며, 세 노트북의 "�
 **[A]**는 저항 점용접이 아니라 가스 금속 아크 용접(GMAW)을 다루며, 열입력이 토치 이동 속도에
 반비례한다는 별도의 물리를 사용한다.
 
-$$V=V_0+E\·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
+$$V=V_0+E·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
 
 | 기호                       | 의미                                               |
 | -------------------------- | -------------------------------------------------- |
@@ -346,7 +346,7 @@ the fitted curve" panel across the three notebooks visualizes.
 **[A]** models not resistance spot welding but gas metal arc welding (GMAW), which follows a
 distinct physics in which heat input is inversely proportional to torch travel speed.
 
-$$V=V_0+E\·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
+$$V=V_0+E·l_a,\qquad Q=\eta\frac{V·I}{v},\qquad WFS=MR=\alpha·I+\beta·L_e ·I^2$$
 
 | Symbol                     | Meaning                                                                                    |
 | -------------------------- | ------------------------------------------------------------------------------------------ |
