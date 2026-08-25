@@ -1,4 +1,4 @@
-# 용접 공정 디지털 트윈: 폐루프 제어 시뮬레이션 대시보드 모음
+# ✍️ 용접 공정 디지털 트윈: 폐루프 제어 시뮬레이션 대시보드 모음
 
 ## 개요
 
@@ -269,7 +269,7 @@ GIF로 저장된다. 모두 노트북 재실행으로 동일하게 재생성되�
 
 ---
 
-# Welding Process Digital Twin: A Collection of Closed-Loop Control Simulation Dashboards
+# 🌏 Welding Process Digital Twin: A Collection of Closed-Loop Control Simulation Dashboards
 
 ## Overview
 
