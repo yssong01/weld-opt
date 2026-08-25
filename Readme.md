@@ -199,10 +199,12 @@ $$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\f
 $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
 
 <p align="center">
-  <img src="assets/dashboards/adaptive_dashboard.gif" width="90%">
+  <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
 </p>
 
-*`RSW 적응형 파인튜닝 실시간 종합 모니터링 대시보드` — IR 이미지 보유 99건 시연용.*
+*영문 표기 버전(`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring Dashboard`, IR
+이미지 보유 99건 시연용)이며, 노트북 안에는 동일한 내용의 국문 표기 버전
+(`figures/adaptive_dashboard.gif`)도 별도 셀로 함께 생성된다.*
 
 | 위치 | 패널 내용 |
 |---|---|
@@ -494,11 +496,13 @@ resistance linearly, as follows.
 $$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
 
 <p align="center">
-  <img src="assets/dashboards/adaptive_dashboard.gif" width="90%">
+  <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
 </p>
 
-*`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring Dashboard` -- a demonstration over
-the 99 welds for which IR images are available.*
+*English-labeled version (`RSW Adaptive Fine-Tuning Real-Time Comprehensive Monitoring
+Dashboard`, a demonstration over the 99 welds for which IR images are available); the notebook
+also generates an equivalent Korean-labeled version (`figures/adaptive_dashboard.gif`) in a
+separate cell.*
 
 | Position | Panel Content |
 |---|---|
