@@ -141,7 +141,7 @@ Parameters, Infrared, and Surface Imaging' 데이터셋을 출처로 한다(`dow
 전류·통전시간으로 열입력 축을, 가압력으로 팽출 억제 축을 동시에 제어하며, 매 프레임 아래
 목적함수를 최소화하는 조작 변수를 격자 탐색으로 재산정한다.
 
-$$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\frac{Q-Q_{target}}{Q_{target}}\right)^2$$
+$$J(I,t,P)=w_{bad}·p_{bad}(Q)+w_{exp}·p_{exp}(\theta_{eff},P)+w_{heat}\left(\frac{Q-Q_{target}}{Q_{target}}\right)^2$$
 
 <p align="center">
   <img src="assets/dashboards/3x3_weld_dashboard_Eng.gif" width="90%">
@@ -197,7 +197,7 @@ _영문 표기 버전이며, 노트북 안에는 동일한 내용의 국문 표�
 경사하강법으로 보정하는 adaptive 중 어느 쪽이 실제(가상 참값)에 더 가까운 판정을 내리는지
 비교한다. 표면온도는 접촉저항을 아래와 같이 선형적으로 변화시킨다고 가정한다.
 
-$$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
+$$R_{eff}=1+\alpha ·\Delta T,\qquad Q_{eff}=I^2 ·R_{eff}·t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
 
 <p align="center">
   <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
@@ -431,7 +431,7 @@ $\theta$ and $P$, it simultaneously regulates the heat-input axis via current an
 the expulsion-suppression axis via pressure, recomputing the manipulated variables every frame
 through a grid search that minimizes the following objective function.
 
-$$J(I,t,P)=w_{bad}\,p_{bad}(Q)+w_{exp}\,p_{exp}(\theta_{eff},P)+w_{heat}\left(\frac{Q-Q_{target}}{Q_{target}}\right)^2$$
+$$J(I,t,P)=w_{bad}·p_{bad}(Q)+w_{exp}·p_{exp}(\theta_{eff},P)+w_{heat}\left(\frac{Q-Q_{target}}{Q_{target}}\right)^2$$
 
 <p align="center">
   <img src="assets/dashboards/3x3_weld_dashboard_Eng.gif" width="90%">
@@ -496,7 +496,7 @@ calibrates the correction via gradient descent, evaluating which of the two yiel
 closer to the (synthetic) ground truth. Surface temperature is assumed to alter contact
 resistance linearly, as follows.
 
-$$R_{eff}=1+\alpha\,\Delta T,\qquad Q_{eff}=I^2 R_{eff}\,t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
+$$R_{eff}=1+\alpha·\Delta T,\qquad Q_{eff}=I^2 ·R_{eff}·t,\qquad \alpha=0.004\ [1/^\circ\mathrm{C}]$$
 
 <p align="center">
   <img src="assets/dashboards/adaptive_dashboard_eng.gif" width="90%">
